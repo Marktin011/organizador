@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cuaderno · Agenda del instituto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="icon.jpg">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --ink:#EAF0FF;
+  --muted:#8B93B8;
+  --glass:rgba(20,24,48,0.55);
+  --glass-strong:rgba(40,46,90,0.65);
+  --glass-border:rgba(120,140,255,0.22);
+  --accent:#3D5CFF;
+  --accent-glow:#5B7CFF;
+  --amber:#E8A93B;
+  --red:#FF5C6C;
+  --green:#3FD39A;
+  --radius:22px;
+  --radius-sm:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  min-height:100vh;
+  font-family:'Inter',sans-serif;
+  color:var(--ink);
+  background: #05060C;
+  overflow-x:hidden;
+}
+.bg{ position:fixed; inset:0; z-index:-1; overflow:hidden; background:#05060C; }
+.bg::before{
+  content:''; position:absolute; inset:0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(140,160,255,0.5) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 15%, rgba(140,160,255,0.35) 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 85% 60%, rgba(140,160,255,0.4) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(140,160,255,0.3) 0, transparent 100%),
+    radial-gradient(1px 1px at 10% 65%, rgba(140,160,255,0.3) 0, transparent 100%);
+  opacity:.8;
+}
+.bg span{ position:absolute; border-radius:50%; filter:blur(70px); opacity:.5; animation: float 24s ease-in-out infinite; }
+.bg span:nth-child(1){ width:360px;height:360px; background:#2A3EFF; top:-100px; left:-80px; animation-duration:28s;}
+.bg span:nth-child(2){ width:300px;height:300px; background:#4B2AFF; top:55%; left:65%; animation-duration:22s; animation-delay:-6s;}
+.bg span:nth-child(3){ width:260px;height:260px; background:#1E6BFF; top:5%; left:55%; animation-duration:26s; animation-delay:-11s;}
+.bg span:nth-child(4){ width:240px;height:240px; background:#3D2AFF; top:75%; left:0%; animation-duration:19s; animation-delay:-3s;}
+@keyframes float{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  33%{ transform: translate(30px,-30px) scale(1.1); }
+  66%{ transform: translate(-20px,20px) scale(0.92); }
+}
+.app{max-width:720px;margin:0 auto;padding:26px 16px 110px;}
+header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;padding:0 4px;}
+header.top h1{ font-weight:800; font-size:26px; letter-spacing:-0.02em; margin:0; text-shadow:0 0 24px rgba(91,124,255,0.45); }
+header.top .today{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); text-transform:capitalize; }
+.glass{
+  background:var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow: 0 8px 32px -10px rgba(0,0,10,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+nav.tabs{
+  display:flex; gap:2px; padding:6px;
+  position:fixed; left:16px; right:16px; bottom:16px;
+  max-width:688px; margin:0 auto;
+  border-radius:999px;
+  padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+nav.tabs button{
+  flex:1; white-space:nowrap; border:none; background:transparent;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:11.5px; color:var(--muted);
+  padding:11px 6px; border-radius:999px; cursor:pointer; transition:.2s;
+}
+nav.tabs button.active{
+  background:var(--glass-strong); color:var(--ink);
+  box-shadow: 0 4px 18px -4px rgba(61,92,255,0.55), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.card{ padding:18px; margin-bottom:14px; }
+.card h2{ font-size:15px; font-weight:700; margin:0 0 14px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.card h2 .row-actions{display:flex; gap:6px;}
+.icon-btn{
+  width:26px;height:26px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(120,140,255,0.14); color:var(--ink); font-size:14px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.icon-btn:active{ transform:scale(0.92); }
+.grid-schedule{ display:grid; grid-template-columns: 52px repeat(5, 1fr); gap:5px; font-size:12px; }
+.grid-schedule .hcell{
+  font-family:'IBM Plex Mono',monospace; color:var(--muted); font-size:10px;
+  display:flex; align-items:center; justify-content:flex-end; gap:2px; cursor:pointer; padding-right:2px;
+}
+.grid-schedule .daylabel{ font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); text-align:center; padding-bottom:4px; letter-spacing:.04em;}
+.slot{
+  background:rgba(120,140,255,0.07); border:1px solid rgba(120,140,255,0.16);
+  border-radius:12px; min-height:38px; padding:5px 6px; font-size:11px; line-height:1.25; cursor:pointer; transition:.15s;
+}
+.slot:active{ transform:scale(0.96); }
+.slot.filled{ background:rgba(61,92,255,0.22); border-color:rgba(91,124,255,0.5); box-shadow:0 0 16px -6px rgba(61,92,255,0.6); }
+.slot .sub{font-weight:700; display:block;}
+.slot .room{color:var(--muted); font-size:10px;}
+button.add-btn{
+  background:linear-gradient(135deg, var(--accent), var(--accent-glow)); color:#fff; border:none; border-radius:14px; padding:10px 16px;
+  font-weight:700; font-size:13px; cursor:pointer; box-shadow:0 4px 18px -4px rgba(61,92,255,0.6);
+}
+button.ghost{ background:rgba(120,140,255,0.1); border:1px solid rgba(120,140,255,0.25); color:var(--ink); border-radius:14px; padding:10px 16px; font-weight:600; font-size:13px; cursor:pointer; }
+.list-item{ display:flex; align-items:flex-start; gap:10px; padding:11px 2px; border-bottom:1px solid rgba(120,140,255,0.12); }
+.list-item:last-child{border-bottom:none;}
+.list-item .dot{ width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none; box-shadow:0 0 8px currentColor; }
+.list-item .body{flex:1;}
+.list-item .title{font-weight:600; font-size:14px;}
+.list-item .meta{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); margin-top:1px;}
+.list-item .actions{display:flex; gap:4px;}
+.list-item .actions button{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:15px; padding:2px 5px; }
+.badge{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; padding:2px 7px; border-radius:999px; text-transform:uppercase; }
+.badge.exam{background:rgba(255,92,108,0.16); color:var(--red);}
+.badge.deber{background:rgba(232,169,59,0.16); color:var(--amber);}
+form.inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+form.inline input, form.inline select{
+  font-family:'Inter',sans-serif; font-size:13px; padding:9px 11px; border:1px solid rgba(120,140,255,0.22);
+  border-radius:12px; background:rgba(120,140,255,0.08); color:var(--ink); flex:1; min-width:110px;
+}
+form.inline input::placeholder{ color:var(--muted); }
+form.inline input:focus, form.inline select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+label.small{font-size:10.5px;color:var(--muted);display:block;margin-bottom:3px;}
+.field{display:flex;flex-direction:column;flex:1;min-width:110px;}
+.empty{ text-align:center; padding:28px 10px; color:var(--muted); font-size:13px; }
+.empty .big{font-weight:700; color:var(--ink); display:block; margin-bottom:4px; font-size:14px;}
+.faltas-count{ display:flex; gap:8px; overflow-x:auto; margin-bottom:8px; }
+.faltas-count .pill{
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; background:rgba(255,92,108,0.12);
+  border:1px solid rgba(255,92,108,0.3); border-radius:10px; padding:6px 10px; white-space:nowrap; color:var(--ink);
+}
+.faltas-count .pill b{color:var(--red);}
+.footer-actions{ display:flex;gap:8px;flex-wrap:wrap;margin-top:8px; }
+.hint{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="bg"><span></span><span></span><span></span><span></span></div>
+<div class="app">
+  <header class="top">
+    <h1>Cuaderno</h1>
+    <div class="today" id="todayLabel"></div>
+  </header>
+
+  <section id="tab-horario">
+    <div class="card glass">
+      <h2>Horario semanal
+        <span class="row-actions">
+          <button class="icon-btn" id="addHourBtn" title="Añadir hora">+</button>
+          <button class="icon-btn" id="removeHourBtn" title="Quitar última hora">–</button>
+        </span>
+      </h2>
+      <div class="grid-schedule" id="scheduleGrid"></div>
+      <div class="hint">Toca una hora (izquierda) para editarla. Toca una casilla para añadir, editar o borrar una clase.</div>
+    </div>
+  </section>
+
+  <section id="tab-tareas" style="display:none;">
+    <div class="card glass">
+      <h2>Exámenes y deberes</h2>
+      <div id="tasksList"></div>
+      <form class="inline" id="taskForm">
+        <div class="field"><label class="small">Asignatura</label><input required id="tSubject" placeholder="Matemáticas"></div>
+        <div class="field"><label class="small">Tipo</label>
+          <select id="tType"><option value="deber">Deber</option><option value="exam">Examen</option></select>
+        </div>
+        <div class="field"><label class="small">Título</label><input required id="tTitle" placeholder="Tema 4"></div>
+        <div class="field"><label class="small">Fecha</label><input required type="date" id="tDate"></div>
+        <button type="submit" class="add-btn">Añadir</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="tab-faltas" style="display:none;">
+    <div class="card glass">
+      <h2>Faltas de asistencia</h2>
+      <div class="faltas-count" id="faltasResumen"></div>
+      <div id="faltasList"></div>
+      <form class="inline" id="faltaForm">
+        <div class="field"><label class="small">Asignatura</label><input required id="fSubject" placeholder="Historia"></div>
+        <div class="field"><label class="small">Fecha</label><input required type="date" id="fDate"></div>
+        <div class="field"><label class="small">Justificada</label>
+          <select id="fJust"><option value="no">No</option><option value="si">Sí</option></select>
+        </div>
+        <button type="submit" class="add-btn">Registrar falta</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="tab-calendario" style="display:none;">
+    <div class="card glass">
+      <h2>Festivos y días no lectivos</h2>
+      <div id="holidaysList"></div>
+      <form class="inline" id="holidayForm">
+        <div class="field"><label class="small">Nombre</label><input required id="hName" placeholder="Puente / Semana Santa..."></div>
+        <div class="field"><label class="small">Fecha</label><input required type="date" id="hDate"></div>
+        <button type="submit" class="add-btn">Añadir</button>
+      </form>
+    </div>
+    <div class="card glass">
+      <h2>Google Calendar <span id="googleStatus" class="hint" style="margin:0;">Sin conectar</span></h2>
+      <p class="hint" style="margin-top:0;">
+        Pega aquí tu Client ID de Google (lo obtienes en Google Cloud Console, ver pasos que te di). Solo hace falta una vez; se guarda en este dispositivo. Añade tu cuenta de Google en Ajustes → Calendario → Cuentas del iPhone para que los eventos aparezcan automáticamente.
+      </p>
+      <form class="inline" id="googleClientForm">
+        <div class="field"><label class="small">Client ID de Google</label><input id="googleClientId" placeholder="xxxx.apps.googleusercontent.com"></div>
+        <button type="submit" class="ghost">Guardar</button>
+      </form>
+      <div class="footer-actions">
+        <button class="add-btn" id="connectGoogleBtn">Conectar con Google</button>
+        <button class="ghost" id="syncGoogleBtn">Sincronizar ahora</button>
+      </div>
+      <p class="hint">
+        Al sincronizar se crean en tu Google Calendar los eventos que aún no tengas subidos (horario semanal, exámenes/deberes y festivos). Si borras algo aquí después de sincronizarlo, también se borra en Google.
+      </p>
+    </div>
+
+    <div class="card glass">
+      <h2>Exportar .ics (alternativa sin Google)</h2>
+      <p class="hint" style="margin-top:0;">
+        Genera un .ics con tu horario, exámenes/deberes y festivos. Ábrelo en el iPhone y Calendario lo importa una vez (sin actualizarse solo).
+      </p>
+      <div class="footer-actions">
+        <button class="ghost" id="exportIcs">Exportar .ics</button>
+        <button class="ghost" id="exportJson">Copia de seguridad (JSON)</button>
+        <label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer;">
+          Importar copia
+          <input type="file" id="importJson" accept="application/json" style="display:none;">
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-classroom" style="display:none;">
+    <div class="card glass">
+      <h2>Cuenta de Classroom <span id="classroomStatus" class="hint" style="margin:0;">Sin conectar</span></h2>
+      <p class="hint" style="margin-top:0;">
+        Esta es la cuenta del instituto (Google Workspace for Education), distinta de la que usas para Google Calendar. Reutiliza el mismo Client ID de arriba (misma app), pero al pulsar "Conectar Classroom" Google te dejará elegir la otra cuenta.
+      </p>
+      <div class="footer-actions">
+        <button class="add-btn" id="connectClassroomBtn">Conectar Classroom</button>
+      </div>
+    </div>
+
+    <div class="card glass">
+      <h2>Recursos del Classroom</h2>
+      <p class="hint" style="margin-top:0;">Materiales y archivos publicados en tus cursos (apuntes, enlaces, PDFs, formularios...).</p>
+      <div class="footer-actions">
+        <button class="ghost" id="loadResourcesBtn">Cargar recursos</button>
+      </div>
+      <div id="resourcesList"></div>
+    </div>
+
+    <div class="card glass">
+      <h2>Tareas del Classroom en el calendario</h2>
+      <p class="hint" style="margin-top:0;">Carga las tareas con fecha de entrega de tus cursos y elige cuáles añadir a "Tareas" (y de ahí, con "Sincronizar ahora" en la pestaña Calendario, a tu Google Calendar).</p>
+      <div class="footer-actions">
+        <button class="ghost" id="loadAssignmentsBtn">Cargar tareas de Classroom</button>
+      </div>
+      <div id="assignmentsList"></div>
+      <div class="footer-actions" id="addAssignmentsWrap" style="display:none;">
+        <button class="add-btn" id="addAssignmentsBtn">Añadir seleccionadas a Tareas</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs glass">
+  <button data-tab="horario" class="active">Horario</button>
+  <button data-tab="tareas">Tareas</button>
+  <button data-tab="faltas">Faltas</button>
+  <button data-tab="calendario">Calendario</button>
+  <button data-tab="classroom">Classroom</button>
+</nav>
+
+<script>
+const DAYS = ['Lun','Mar','Mié','Jue','Vie'];
+const DEFAULT_HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00'];
+
+const store = {
+  load(key, fallback){ try{ const v = localStorage.getItem('agenda_'+key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } },
+  save(key, val){ localStorage.setItem('agenda_'+key, JSON.stringify(val)); }
+};
+
+let hours = store.load('hours', DEFAULT_HOURS);
+let schedule = store.load('schedule', {});
+let tasks = store.load('tasks', []);
+let absences = store.load('absences', []);
+let holidays = store.load('holidays', []);
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// Curso escolar: del 9 de septiembre al 20 de junio del año siguiente.
+// Si estamos entre enero y junio, el curso empezó en septiembre del año anterior.
+function schoolYearRange(){
+  const now = new Date();
+  const startYear = now.getMonth() <= 5 ? now.getFullYear()-1 : now.getFullYear();
+  const start = new Date(startYear, 8, 9);       // 9 septiembre
+  const end = new Date(startYear+1, 5, 20);      // 20 junio
+  return { start, end };
+}
+// Primera fecha, a partir de "from", que cae en el día de la semana dayIndex (0=Lun...4=Vie)
+function firstOccurrence(from, dayIndex){
+  const d = new Date(from);
+  const fromDow = (d.getDay()+6)%7; // Lun=0...Dom=6
+  let diff = dayIndex - fromDow;
+  if(diff < 0) diff += 7;
+  d.setDate(d.getDate()+diff);
+  return d;
+}
+function untilStamp(date){
+  const end = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23,59,59));
+  return end.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+}
+function pad2(n){ return n.toString().padStart(2,'0'); }
+function formatLocalDate(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+
+// ---------- GOOGLE CALENDAR ----------
+let gTokenClient = null;
+let gAccessToken = null;
+const TZ = 'Europe/Madrid';
+
+document.getElementById('googleClientId').value = store.load('googleClientId','');
+document.getElementById('googleClientForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  store.save('googleClientId', googleClientId.value.trim());
+  initGoogleClient();
+  alert('Client ID guardado.');
+});
+
+function saveTokenCache(key, accessToken, expiresIn){
+  store.save(key, { access_token: accessToken, expires_at: Date.now() + (expiresIn*1000) });
+}
+function loadTokenCache(key){
+  const cached = store.load(key, null);
+  if(cached && cached.expires_at > Date.now() + 30000) return cached.access_token;
+  return null;
+}
+
+function initGoogleClient(){
+  const clientId = store.load('googleClientId','');
+  if(!clientId || typeof google === 'undefined') return;
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/calendar.events',
+    callback: (resp)=>{
+      if(resp.error){ alert('Error de conexión: '+resp.error); return; }
+      gAccessToken = resp.access_token;
+      saveTokenCache('gTokenCache', resp.access_token, resp.expires_in);
+      store.save('everConnectedGoogle', true);
+      document.getElementById('googleStatus').textContent = 'Conectado ✓';
+    }
+  });
+  // Reutiliza sesión guardada si sigue vigente
+  const cached = loadTokenCache('gTokenCache');
+  if(cached){
+    gAccessToken = cached;
+    document.getElementById('googleStatus').textContent = 'Conectado ✓';
+  } else if(store.load('everConnectedGoogle', false)){
+    // Intenta renovar en silencio (sin mostrar ventana) si sigues con sesión en Google
+    gTokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+window.addEventListener('load', ()=> setTimeout(initGoogleClient, 400));
+
+// ---------- GOOGLE CLASSROOM (cuenta separada) ----------
+let cTokenClient = null;
+let cAccessToken = null;
+let loadedCourses = [];
+
+function initClassroomClient(){
+  const clientId = store.load('googleClientId','');
+  if(!clientId || typeof google === 'undefined') return;
+  cTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: [
+      'https://www.googleapis.com/auth/classroom.courses.readonly',
+      'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
+      'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly'
+    ].join(' '),
+    callback: (resp)=>{
+      if(resp.error){ alert('Error de conexión: '+resp.error); return; }
+      cAccessToken = resp.access_token;
+      saveTokenCache('cTokenCache', resp.access_token, resp.expires_in);
+      store.save('everConnectedClassroom', true);
+      document.getElementById('classroomStatus').textContent = 'Conectado ✓';
+    }
+  });
+  const cached = loadTokenCache('cTokenCache');
+  if(cached){
+    cAccessToken = cached;
+    document.getElementById('classroomStatus').textContent = 'Conectado ✓';
+  } else if(store.load('everConnectedClassroom', false)){
+    cTokenClient.requestAccessToken({ prompt: '' });
+  }
+}
+window.addEventListener('load', ()=> setTimeout(initClassroomClient, 400));
+
+document.getElementById('connectClassroomBtn').addEventListener('click', ()=>{
+  const clientId = store.load('googleClientId','');
+  if(!clientId){ alert('Primero guarda tu Client ID en la pestaña Calendario.'); return; }
+  if(!cTokenClient) initClassroomClient();
+  if(!cTokenClient){ alert('La librería de Google aún está cargando, inténtalo de nuevo en un segundo.'); return; }
+  cTokenClient.requestAccessToken({ prompt: 'select_account' });
+});
+
+async function cFetch(path){
+  const res = await fetch('https://classroom.googleapis.com/v1/'+path, {
+    headers:{ 'Authorization':'Bearer '+cAccessToken }
+  });
+  if(!res.ok) throw new Error('Classroom API ' + res.status);
+  return res.json();
+}
+async function cLoadCourses(){
+  if(loadedCourses.length) return loadedCourses;
+  const data = await cFetch('courses?courseStates=ACTIVE&pageSize=50');
+  loadedCourses = data.courses || [];
+  return loadedCourses;
+}
+function materialLink(m){
+  if(m.driveFile) return m.driveFile.driveFile?.alternateLink;
+  if(m.link) return m.link.url;
+  if(m.youTubeVideo) return m.youTubeVideo.alternateLink;
+  if(m.form) return m.form.formUrl;
+  return null;
+}
+function materialTitle(m){
+  if(m.driveFile) return m.driveFile.driveFile?.title;
+  if(m.link) return m.link.title || m.link.url;
+  if(m.youTubeVideo) return m.youTubeVideo.title;
+  if(m.form) return m.form.title;
+  return 'Recurso';
+}
+
+document.getElementById('loadResourcesBtn').addEventListener('click', async ()=>{
+  if(!cAccessToken){ alert('Conecta primero la cuenta de Classroom.'); return; }
+  const list = document.getElementById('resourcesList');
+  list.innerHTML = '<div class="empty">Cargando…</div>';
+  try{
+    const courses = await cLoadCourses();
+    let html = '';
+    for(const course of courses){
+      const items = [];
+      try{
+        const mats = await cFetch(`courses/${course.id}/courseWorkMaterials?pageSize=50`);
+        (mats.courseWorkMaterial||[]).forEach(m=>{
+          (m.materials||[]).forEach(mat=>{
+            const link = materialLink(mat);
+            if(link) items.push({ title: m.title + ' — ' + materialTitle(mat), link });
+          });
+        });
+      }catch(e){}
+      try{
+        const cw = await cFetch(`courses/${course.id}/courseWork?pageSize=50`);
+        (cw.courseWork||[]).forEach(w=>{
+          (w.materials||[]).forEach(mat=>{
+            const link = materialLink(mat);
+            if(link) items.push({ title: w.title + ' — ' + materialTitle(mat), link });
+          });
+        });
+      }catch(e){}
+      if(items.length){
+        html += `<div class="hint" style="margin-top:14px;font-weight:700;color:var(--ink);">${course.name}</div>`;
+        html += items.map(it=>`
+          <div class="list-item">
+            <div class="dot" style="background:var(--accent)"></div>
+            <div class="body"><div class="title"><a href="${it.link}" target="_blank" style="color:inherit;">${it.title}</a></div></div>
+          </div>`).join('');
+      }
+    }
+    list.innerHTML = html || '<div class="empty"><span class="big">Sin recursos</span>No se encontraron materiales en tus cursos activos.</div>';
+  }catch(err){
+    list.innerHTML = '<div class="empty">Error cargando recursos: '+err.message+'</div>';
+  }
+});
+
+let pendingAssignments = [];
+document.getElementById('loadAssignmentsBtn').addEventListener('click', async ()=>{
+  if(!cAccessToken){ alert('Conecta primero la cuenta de Classroom.'); return; }
+  const list = document.getElementById('assignmentsList');
+  list.innerHTML = '<div class="empty">Cargando…</div>';
+  pendingAssignments = [];
+  try{
+    const courses = await cLoadCourses();
+    for(const course of courses){
+      const cw = await cFetch(`courses/${course.id}/courseWork?pageSize=50&courseWorkStates=PUBLISHED`);
+      (cw.courseWork||[]).forEach(w=>{
+        if(!w.dueDate) return;
+        const dateStr = `${w.dueDate.year}-${String(w.dueDate.month).padStart(2,'0')}-${String(w.dueDate.day).padStart(2,'0')}`;
+        const already = tasks.some(t=>t.classroomId===w.id);
+        pendingAssignments.push({ classroomId:w.id, course:course.name, title:w.title, date:dateStr, already });
+      });
+    }
+    if(pendingAssignments.length===0){
+      list.innerHTML = '<div class="empty"><span class="big">Sin tareas pendientes</span>No hay coursework con fecha de entrega.</div>';
+      document.getElementById('addAssignmentsWrap').style.display='none';
+      return;
+    }
+    list.innerHTML = pendingAssignments.map((a,i)=>`
+      <div class="list-item">
+        <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;width:100%;">
+          <input type="checkbox" data-idx="${i}" ${a.already?'disabled checked':''} style="margin-top:4px;">
+          <span class="body">
+            <span class="title">${a.course} — ${a.title}</span>
+            <span class="meta">${formatDate(a.date)}${a.already?' · ya está en Tareas':''}</span>
+          </span>
+        </label>
+      </div>`).join('');
+    document.getElementById('addAssignmentsWrap').style.display='flex';
+  }catch(err){
+    list.innerHTML = '<div class="empty">Error cargando tareas: '+err.message+'</div>';
+  }
+});
+document.getElementById('addAssignmentsBtn').addEventListener('click', ()=>{
+  const checks = document.querySelectorAll('#assignmentsList input[type=checkbox]:checked:not(:disabled)');
+  checks.forEach(chk=>{
+    const a = pendingAssignments[parseInt(chk.dataset.idx,10)];
+    tasks.push({ id:uid(), subject:a.course, type:'deber', title:a.title, date:a.date, done:false, classroomId:a.classroomId, googleEventId:null });
+  });
+  store.save('tasks', tasks);
+  renderTasks();
+  alert('Añadidas a Tareas. Ve a la pestaña Calendario y pulsa "Sincronizar ahora" para subirlas a Google Calendar.');
+  document.getElementById('loadAssignmentsBtn').click();
+});
+
+document.getElementById('connectGoogleBtn').addEventListener('click', ()=>{
+  const clientId = store.load('googleClientId','');
+  if(!clientId){ alert('Primero guarda tu Client ID de Google arriba.'); return; }
+  if(!gTokenClient) initGoogleClient();
+  if(!gTokenClient){ alert('La librería de Google aún está cargando, espera un segundo e inténtalo de nuevo.'); return; }
+  gTokenClient.requestAccessToken();
+});
+
+async function gCreateEvent(resource){
+  const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method:'POST',
+    headers:{ 'Authorization':'Bearer '+gAccessToken, 'Content-Type':'application/json' },
+    body: JSON.stringify(resource)
+  });
+  if(!res.ok) throw new Error('Google API ' + res.status);
+  return res.json();
+}
+async function gDeleteEvent(eventId){
+  if(!gAccessToken || !eventId) return;
+  try{
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+eventId, {
+      method:'DELETE',
+      headers:{ 'Authorization':'Bearer '+gAccessToken }
+    });
+  }catch(e){ /* silencioso: puede que el evento ya no exista */ }
+}
+
+document.getElementById('syncGoogleBtn').addEventListener('click', async ()=>{
+  if(!gAccessToken){ alert('Conecta con Google primero.'); return; }
+  const btn = document.getElementById('syncGoogleBtn');
+  btn.textContent = 'Sincronizando…'; btn.disabled = true;
+  try{
+    const { start: schoolStart, end: schoolEnd } = schoolYearRange();
+    const untilStr = untilStamp(schoolEnd);
+
+    // Horario -> eventos semanales recurrentes, del 9 de septiembre al 20 de junio
+    for(const [key, data] of Object.entries(schedule)){
+      if(data.googleEventId) continue;
+      const [di, hi] = key.split('-').map(Number);
+      const h = hours[hi]; if(!h) continue;
+      const classDate = firstOccurrence(schoolStart, di);
+      const dateStr = formatLocalDate(classDate);
+      const [hh,mm] = h.split(':');
+      const endH = ((parseInt(hh,10)+1)%24).toString().padStart(2,'0');
+      const resource = {
+        summary: data.subject + (data.room ? ' (' + data.room + ')' : ''),
+        start: { dateTime: `${dateStr}T${hh}:${mm}:00`, timeZone: TZ },
+        end: { dateTime: `${dateStr}T${endH}:${mm}:00`, timeZone: TZ },
+        recurrence: ['RRULE:FREQ=WEEKLY;UNTIL=' + untilStr]
+      };
+      const created = await gCreateEvent(resource);
+      data.googleEventId = created.id;
+    }
+    store.save('schedule', schedule);
+
+    // Tareas -> eventos de un día
+    for(const t of tasks){
+      if(t.googleEventId) continue;
+      const next = new Date(t.date+'T00:00:00'); next.setDate(next.getDate()+1);
+      const resource = {
+        summary: (t.type==='exam'?'Examen ':'Deber ') + t.subject + ' — ' + t.title,
+        start: { date: t.date },
+        end: { date: next.toISOString().slice(0,10) }
+      };
+      const created = await gCreateEvent(resource);
+      t.googleEventId = created.id;
+    }
+    store.save('tasks', tasks);
+
+    // Festivos -> eventos de un día
+    for(const h of holidays){
+      if(h.googleEventId) continue;
+      const next = new Date(h.date+'T00:00:00'); next.setDate(next.getDate()+1);
+      const resource = {
+        summary: h.name + ' (no lectivo)',
+        start: { date: h.date },
+        end: { date: next.toISOString().slice(0,10) }
+      };
+      const created = await gCreateEvent(resource);
+      h.googleEventId = created.id;
+    }
+    store.save('holidays', holidays);
+
+    alert('Sincronización completa.');
+  }catch(err){
+    alert('Algo falló sincronizando: ' + err.message);
+  }
+  btn.textContent = 'Sincronizar ahora'; btn.disabled = false;
+});
+
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['horario','tareas','faltas','calendario','classroom'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display = (t===btn.dataset.tab)?'block':'none';
+    });
+  });
+});
+
+document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+
+function renderSchedule(){
+  const grid = document.getElementById('scheduleGrid');
+  grid.innerHTML = '';
+  grid.appendChild(document.createElement('div'));
+  DAYS.forEach(d=>{
+    const el = document.createElement('div');
+    el.className='daylabel'; el.textContent=d;
+    grid.appendChild(el);
+  });
+  hours.forEach((h, hi)=>{
+    const hc = document.createElement('div');
+    hc.className='hcell'; hc.textContent=h;
+    hc.addEventListener('click', ()=> editHour(hi));
+    grid.appendChild(hc);
+    DAYS.forEach((d,di)=>{
+      const key = di+'-'+hi;
+      const cell = document.createElement('div');
+      const data = schedule[key];
+      cell.className = 'slot' + (data ? ' filled' : '');
+      cell.innerHTML = data ? `<span class="sub">${data.subject}</span><span class="room">${data.room||''}</span>` : '';
+      cell.addEventListener('click', ()=> editSlot(key, di, hi));
+      grid.appendChild(cell);
+    });
+  });
+}
+function editHour(hi){
+  const newVal = prompt('Editar hora (formato HH:MM):', hours[hi]);
+  if(newVal===null) return;
+  const trimmed = newVal.trim();
+  if(!/^\d{1,2}:\d{2}$/.test(trimmed)){ alert('Formato no válido, usa HH:MM'); return; }
+  hours[hi] = trimmed;
+  store.save('hours', hours);
+  renderSchedule();
+}
+document.getElementById('addHourBtn').addEventListener('click', ()=>{
+  const last = hours[hours.length-1] || '08:00';
+  const [hh,mm] = last.split(':').map(Number);
+  const next = ((hh+1)%24).toString().padStart(2,'0') + ':' + mm.toString().padStart(2,'0');
+  hours.push(next);
+  store.save('hours', hours);
+  renderSchedule();
+});
+document.getElementById('removeHourBtn').addEventListener('click', ()=>{
+  if(hours.length<=1) return;
+  const lastIndex = hours.length-1;
+  DAYS.forEach((d,di)=>{ delete schedule[di+'-'+lastIndex]; });
+  hours.pop();
+  store.save('hours', hours);
+  store.save('schedule', schedule);
+  renderSchedule();
+});
+function editSlot(key, di, hi){
+  const existing = schedule[key];
+  const subject = prompt(`Asignatura para ${DAYS[di]} ${hours[hi]} (vacío para borrar):`, existing? existing.subject : '');
+  if(subject === null) return;
+  if(subject.trim()===''){
+    if(existing && existing.googleEventId) gDeleteEvent(existing.googleEventId);
+    delete schedule[key];
+  }
+  else {
+    const room = prompt('Aula (opcional):', existing? existing.room : '') || '';
+    schedule[key] = { subject: subject.trim(), room: room.trim(), googleEventId: existing ? existing.googleEventId : null };
+  }
+  store.save('schedule', schedule);
+  renderSchedule();
+}
+
+function renderTasks(){
+  const list = document.getElementById('tasksList');
+  if(tasks.length===0){ list.innerHTML = '<div class="empty"><span class="big">Nada pendiente</span>Añade un examen o deber abajo.</div>'; return; }
+  const sorted = [...tasks].sort((a,b)=> a.date.localeCompare(b.date));
+  list.innerHTML = sorted.map(t=>`
+    <div class="list-item">
+      <div class="dot" style="background:${t.type==='exam'?'var(--red)':'var(--amber)'}"></div>
+      <div class="body">
+        <div class="title" style="${t.done?'text-decoration:line-through;color:var(--muted);':''}">${t.subject} — ${t.title}</div>
+        <div class="meta">${formatDate(t.date)} · <span class="badge ${t.type}">${t.type==='exam'?'Examen':'Deber'}</span></div>
+      </div>
+      <div class="actions">
+        <button title="Marcar hecho" onclick="toggleTask('${t.id}')">${t.done?'↺':'✓'}</button>
+        <button title="Borrar" onclick="deleteTask('${t.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+function toggleTask(id){ const t = tasks.find(x=>x.id===id); if(t){ t.done=!t.done; store.save('tasks',tasks); renderTasks(); } }
+function deleteTask(id){
+  const t = tasks.find(x=>x.id===id);
+  if(t && t.googleEventId) gDeleteEvent(t.googleEventId);
+  tasks = tasks.filter(x=>x.id!==id); store.save('tasks',tasks); renderTasks();
+}
+document.getElementById('taskForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  tasks.push({ id:uid(), subject:tSubject.value.trim(), type:tType.value, title:tTitle.value.trim(), date:tDate.value, done:false });
+  store.save('tasks',tasks);
+  e.target.reset();
+  renderTasks();
+});
+
+function renderFaltas(){
+  const list = document.getElementById('faltasList');
+  const resumen = document.getElementById('faltasResumen');
+  if(absences.length===0){
+    list.innerHTML = '<div class="empty"><span class="big">Sin faltas registradas</span>Buen ritmo.</div>';
+    resumen.innerHTML='';
+    return;
+  }
+  const counts = {};
+  absences.forEach(a=>{ counts[a.subject] = (counts[a.subject]||0) + (a.just==='si'?0:1); });
+  resumen.innerHTML = Object.entries(counts).map(([s,c])=>`<div class="pill">${s}: <b>${c}</b> sin justificar</div>`).join('');
+  const sorted = [...absences].sort((a,b)=> b.date.localeCompare(a.date));
+  list.innerHTML = sorted.map(a=>`
+    <div class="list-item">
+      <div class="dot" style="background:${a.just==='si'?'var(--green)':'var(--red)'}"></div>
+      <div class="body">
+        <div class="title">${a.subject}</div>
+        <div class="meta">${formatDate(a.date)} · ${a.just==='si'?'Justificada':'Sin justificar'}</div>
+      </div>
+      <div class="actions"><button title="Borrar" onclick="deleteFalta('${a.id}')">✕</button></div>
+    </div>`).join('');
+}
+function deleteFalta(id){ absences = absences.filter(x=>x.id!==id); store.save('absences',absences); renderFaltas(); }
+document.getElementById('faltaForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  absences.push({ id:uid(), subject:fSubject.value.trim(), date:fDate.value, just:fJust.value });
+  store.save('absences',absences);
+  e.target.reset();
+  renderFaltas();
+});
+
+function renderHolidays(){
+  const list = document.getElementById('holidaysList');
+  if(holidays.length===0){ list.innerHTML = '<div class="empty"><span class="big">Sin festivos añadidos</span>Añade puentes, Navidad, Semana Santa, etc.</div>'; return; }
+  const sorted = [...holidays].sort((a,b)=> a.date.localeCompare(b.date));
+  list.innerHTML = sorted.map(h=>`
+    <div class="list-item">
+      <div class="dot" style="background:var(--ink)"></div>
+      <div class="body">
+        <div class="title">${h.name}</div>
+        <div class="meta">${formatDate(h.date)}</div>
+      </div>
+      <div class="actions"><button title="Borrar" onclick="deleteHoliday('${h.id}')">✕</button></div>
+    </div>`).join('');
+}
+function deleteHoliday(id){
+  const h = holidays.find(x=>x.id===id);
+  if(h && h.googleEventId) gDeleteEvent(h.googleEventId);
+  holidays = holidays.filter(x=>x.id!==id); store.save('holidays',holidays); renderHolidays();
+}
+document.getElementById('holidayForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  holidays.push({ id:uid(), name:hName.value.trim(), date:hDate.value });
+  store.save('holidays',holidays);
+  e.target.reset();
+  renderHolidays();
+});
+
+function formatDate(d){
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+function icsDate(dateStr){ return dateStr.replaceAll('-',''); }
+function icsDateTime(dateStr, timeStr){
+  const [h,m] = timeStr.split(':');
+  return dateStr.replaceAll('-','') + 'T' + pad(h) + pad(m) + '00';
+}
+document.getElementById('exportIcs').addEventListener('click', ()=>{
+  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cuaderno Agenda//ES\r\nCALSCALE:GREGORIAN\r\n';
+
+  const { start: schoolStart, end: schoolEnd } = schoolYearRange();
+  const untilStr = untilStamp(schoolEnd);
+
+  Object.entries(schedule).forEach(([key,data])=>{
+    const [di,hi] = key.split('-').map(Number);
+    const h = hours[hi];
+    if(!h) return;
+    const classDate = firstOccurrence(schoolStart, di);
+    const dateStr = formatLocalDate(classDate);
+    const [hh,mm] = h.split(':');
+    const endH = pad((parseInt(hh,10)+1)%24);
+    ics += 'BEGIN:VEVENT\r\n';
+    ics += 'UID:' + uid() + '@cuaderno\r\n';
+    ics += 'DTSTART:' + icsDateTime(dateStr, h) + '\r\n';
+    ics += 'DTEND:' + icsDateTime(dateStr, endH+':'+mm) + '\r\n';
+    ics += 'RRULE:FREQ=WEEKLY;UNTIL=' + untilStr + '\r\n';
+    ics += 'SUMMARY:' + data.subject + (data.room? ' (' + data.room + ')' : '') + '\r\n';
+    ics += 'END:VEVENT\r\n';
+  });
+
+  tasks.forEach(t=>{
+    ics += 'BEGIN:VEVENT\r\n';
+    ics += 'UID:' + t.id + '@cuaderno\r\n';
+    ics += 'DTSTART;VALUE=DATE:' + icsDate(t.date) + '\r\n';
+    ics += 'SUMMARY:' + (t.type==='exam'?'Examen':'Deber') + ' ' + t.subject + ' — ' + t.title + '\r\n';
+    ics += 'END:VEVENT\r\n';
+  });
+
+  holidays.forEach(h=>{
+    ics += 'BEGIN:VEVENT\r\n';
+    ics += 'UID:' + h.id + '@cuaderno\r\n';
+    ics += 'DTSTART;VALUE=DATE:' + icsDate(h.date) + '\r\n';
+    ics += 'SUMMARY:' + h.name + ' (no lectivo)\r\n';
+    ics += 'END:VEVENT\r\n';
+  });
+
+  ics += 'END:VCALENDAR\r\n';
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'agenda-instituto.ics';
+  a.click();
+});
+
+document.getElementById('exportJson').addEventListener('click', ()=>{
+  const backup = { hours, schedule, tasks, absences, holidays };
+  const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'agenda-backup.json';
+  a.click();
+});
+document.getElementById('importJson').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      hours = data.hours || DEFAULT_HOURS;
+      schedule = data.schedule||{}; tasks = data.tasks||[]; absences = data.absences||[]; holidays = data.holidays||[];
+      store.save('hours',hours); store.save('schedule',schedule); store.save('tasks',tasks); store.save('absences',absences); store.save('holidays',holidays);
+      renderAll();
+      alert('Copia importada correctamente.');
+    }catch(err){ alert('Archivo no válido.'); }
+  };
+  reader.readAsText(file);
+});
+
+function renderAll(){ renderSchedule(); renderTasks(); renderFaltas(); renderHolidays(); }
+renderAll();
+</script>
+</body>
+</html>
